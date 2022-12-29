@@ -52,6 +52,8 @@ if __name__ == "__main__":
     labels = ads3.get_labels()
     dataset = CarDataset(labels=labels)
 
+    log_name = "results/5.csv"
+
     """Split train and test"""
     train_len = int(0.7 * len(dataset))
     valid_len = len(dataset) - train_len
@@ -77,5 +79,5 @@ if __name__ == "__main__":
     )
 
     ads3.run_experiment(
-        loader_train, loader_valid
+        loader_train, loader_valid, log_name,
     )  # For profiling feel free to lower epoch count via epoch=X

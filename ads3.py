@@ -46,6 +46,7 @@ def train_model(
     criterion,
     optimizer,
     scheduler,
+    log_name,
     epochs,
 ):
     dataset_sizes = {
@@ -55,6 +56,9 @@ def train_model(
     print(
         f"Training on {len(loader_train.dataset)} samples. Validating on {len(loader_valid.dataset)} samples"
     )
+
+    log_file = open(log_name, "w")
+    log_file.write("epoch,train_acc,valid_acc,time,train_corr,valid_corr,throughput\n")
 
     for epoch in range(epochs):
         epoc_time = time.time()
@@ -106,9 +110,11 @@ def train_model(
 
         valid_epoch_acc = valid_running_corrects.double() / dataset_sizes["valid"] * 100
 
+        throughput = len(loader_train.dataset)/train_time
+
         print(
             "Epoch [{}/{}] train acc: {:.4f}% "
-            "valid  acc: {:.4f}% Time: {:.0f}s train corr: {:d}  valid corr: {:d}  ".format(
+            "valid  acc: {:.4f}% Time: {:.0f}s train corr: {:d}  valid corr: {:d} throughput (img/s) {:.4f} ".format(
                 epoch,
                 epochs - 1,
                 train_epoch_acc,
@@ -116,13 +122,16 @@ def train_model(
                 (train_time),
                 train_running_corrects,
                 valid_running_corrects,
+                throughput
             )
         )
+        log_file.write(f"{epoch},{train_epoch_acc},{valid_epoch_acc},{train_time},{train_running_corrects},{valid_running_corrects},{throughput}\n")
 
+    log_file.close()
     return model
 
 
-def run_experiment(loader_train, loader_valid, epochs=10):
+def run_experiment(loader_train, loader_valid, log_name, epochs=10):
     if not torch.cuda.is_available():
         raise Exception("CUDA not available to Torch!")
 
@@ -156,6 +165,7 @@ def run_experiment(loader_train, loader_valid, epochs=10):
         criterion,
         optimizer,
         my_scheduler,
+        log_name,
         epochs=epochs,
     )
     print("Training time: {:10f} minutes".format((time.time() - start_time) / 60))

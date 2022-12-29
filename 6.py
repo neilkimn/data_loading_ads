@@ -28,6 +28,7 @@ class CarDataset(D.Dataset):
             [
                 transforms.Resize(INPUT_SIZE),
                 transforms.CenterCrop(INPUT_SIZE),
+                transforms.AutoAugment(transforms.AutoAugmentPolicy.IMAGENET),
                 transforms.ToTensor(),
             ]
         )
@@ -50,6 +51,8 @@ if __name__ == "__main__":
     """Initialise dataset"""
     labels = ads3.get_labels()
     dataset = CarDataset(labels=labels)
+
+    log_name = "results/6.csv"
 
     """Split train and test"""
     train_len = int(0.7 * len(dataset))
@@ -78,5 +81,5 @@ if __name__ == "__main__":
     )
 
     ads3.run_experiment(
-        loader_train, loader_valid
+        loader_train, loader_valid, log_name,
     )  # For profiling feel free to lower epoch count via epoch=X
