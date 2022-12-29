@@ -59,7 +59,7 @@ train_transforms = transforms.Compose(
         transforms.RandomPerspective(p=0.5),
 
         transforms.RandomApply(torch.nn.ModuleList([
-            transforms.ColorJitter(),
+            transforms.ColorJitter(contrast=0.5, saturation=0.5, hue=0.5),
         ]), p=0.5),
 
         transforms.RandomApply(torch.nn.ModuleList([
