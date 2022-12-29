@@ -49,11 +49,11 @@ def train_model(
     epochs,
 ):
     dataset_sizes = {
-        "train": len(loader_train.dataset),
-        "valid": len(loader_valid.dataset),
+        "train": len(loader_train),
+        "valid": len(loader_valid),
     }
     print(
-        f"Training on {len(loader_train.dataset)} samples. Validating on {len(loader_valid.dataset)} samples"
+        f"Training on {len(loader_train)} samples. Validating on {len(loader_valid)} samples"
     )
 
     prof = torch.profiler.profile(
@@ -66,6 +66,7 @@ def train_model(
         profile_memory=False,
         with_stack=True,
     )
+    profiler_stopped = False
     print("Running with PyTorch Profiling enabled! Profiler loaded")
 
     for epoch in range(epochs):
@@ -77,7 +78,9 @@ def train_model(
         running_loss = 0.0
         train_running_corrects = 0
 
-        for inputs, labels in loader_train:
+        for idx, data in enumerate(loader_train.dataset):
+            inputs, labels = data[0]["data"], data[0]["label"]
+            labels = labels.long()
             inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
 
             optimizer.zero_grad()
@@ -93,6 +96,11 @@ def train_model(
             optimizer.step()
 
             running_loss += loss.item()
+            if epoch == 2 and (time.time() - epoc_time) > 30 and not profiler_stopped: 
+                print("profiler stopped")
+                prof.stop()
+                profiler_stopped = True
+
 
         train_epoch_acc = train_running_corrects.double() / dataset_sizes["train"] * 100
 
@@ -103,7 +111,9 @@ def train_model(
         running_loss = 0.0
         valid_running_corrects = 0
 
-        for inputs, labels in loader_valid:
+        for data in loader_valid.dataset:
+            inputs, labels = data[0]["data"], data[0]["label"]
+            labels = labels.long()
             inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
 
             optimizer.zero_grad()
@@ -130,14 +140,16 @@ def train_model(
                 valid_running_corrects,
             )
         )
-        prof.step()
-    prof.stop()
+        if not profiler_stopped:
+            prof.step()
+    if not profiler_stopped:
+        prof.stop()
     prof.export_chrome_trace("trace.json")
 
     return model
 
 
-def run_experiment(loader_train, loader_valid, epochs=3):
+def run_experiment(loader_train, loader_valid, _, epochs=3):
     if not torch.cuda.is_available():
         raise Exception("CUDA not available to Torch!")
 

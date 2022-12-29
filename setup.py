@@ -13,8 +13,10 @@ setup(
         'torch-tb-profiler',
         'nvidia-pyindex',
         'nvidia-dali-cuda110',
+        "matplotlib",
     ],
     dependency_links=[
-        "https://download.pytorch.org/whl/cu116"
+        "https://download.pytorch.org/whl/cu116",
+        "https://developer.download.nvidia.com/compute/redist"
     ]
 )
