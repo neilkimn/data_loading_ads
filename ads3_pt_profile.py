@@ -78,7 +78,7 @@ def train_model(
         running_loss = 0.0
         train_running_corrects = 0
 
-        for idx, data in enumerate(loader_train.dataset):
+        for data in loader_train.dataset:
             inputs, labels = data[0]["data"], data[0]["label"]
             labels = labels.long()
             inputs, labels = Variable(inputs.cuda()), Variable(labels.cuda())
@@ -96,8 +96,7 @@ def train_model(
             optimizer.step()
 
             running_loss += loss.item()
-            if epoch == 2 and (time.time() - epoc_time) > 30 and not profiler_stopped: 
-                print("profiler stopped")
+            if epoch == 2 and (time.time() - epoc_time) > 30 and not profiler_stopped:
                 prof.stop()
                 profiler_stopped = True
 
